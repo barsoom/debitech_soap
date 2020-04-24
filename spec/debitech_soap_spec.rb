@@ -32,11 +32,11 @@ RSpec.describe DebitechSoap::API, "valid_credentials?" do
 
   before do
     @client = double('client')
-    SOAP::WSDLDriverFactory.stub(:new).and_return(double('a-factory', :create_rpc_driver => @client))
+    allow(SOAP::WSDLDriverFactory).to receive(:new).and_return(double('a-factory', :create_rpc_driver => @client))
   end
 
   it "should call 'refund' with the credentials and dummy values, returning true if we were authed but failed to refund" do
-    @client.should_receive(:refund).with(:shopName => "merchant_name", :userName => "api_user_name",
+    expect(@client).to receive(:refund).with(:shopName => "merchant_name", :userName => "api_user_name",
                                                      :password => "api_user_password", :verifyID => -1, :amount => 0).
                                                      and_return(double('refund', :return => double('return', :resultText => "error_transID_or_verifyID")))
 

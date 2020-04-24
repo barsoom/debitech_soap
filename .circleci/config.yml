@@ -1,0 +1,40 @@
+version: 2
+
+jobs:
+  test:
+    docker:
+      # NOTE: keep in sync with Gemfile, and value below.
+      - image: circleci/ruby:2.7.1-node
+        environment:
+          BUNDLE_PATH: vendor/bundle
+
+    steps:
+      - checkout:
+          name: "Checking out code"
+
+      - run:
+          name: "Configure Bundler"
+          command: gem install bundler -v $(grep -A1 "BUNDLED WITH" Gemfile.lock | tail -n1 | xargs)
+
+      # Bundle and cache gems for later builds
+      - restore_cache:
+          name: "Restoring gems cache"
+          key: gems-v1-{{ checksum "Gemfile.lock" }}
+      - run:
+          name: "Bundling gems"
+          command: bundle check || bundle install
+      - save_cache:
+          name: "Saving gems cache"
+          key: gems-v1-{{ checksum "Gemfile.lock" }}
+          paths:
+            - vendor/bundle
+
+      - run:
+          name: "Running tests"
+          command: "bundle exec rake"
+
+workflows:
+  version: 2
+  test_and_deploy:
+    jobs:
+      - test
